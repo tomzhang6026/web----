@@ -1,0 +1,16 @@
+.DS_Store
+node_modules/
+dist/
+.env
+.env.local
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/app.db
+frontend/.vite
+coverage/
+storage/
+
+
