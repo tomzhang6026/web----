@@ -1,9 +1,8 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
-// 使用 .js + ?url，避免服务端对 .mjs 的错误 MIME 映射导致加载失败
-// @ts-ignore
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
 
-GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// 指向 public 目录下的 worker 文件（手动复制并重命名为 .js）
+// 这样可以规避服务器对 .mjs 文件的 MIME 类型检查问题
+GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export async function getPdfPageCount(file: File): Promise<number> {
   const buffer = await file.arrayBuffer();
@@ -23,5 +22,3 @@ export function isPdf(file: File): boolean {
   const ext = (file.name.split(".").pop() || "").toLowerCase();
   return file.type === "application/pdf" || ext === "pdf";
 }
-
-
