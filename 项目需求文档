@@ -1,0 +1,88 @@
+Project Requirement Document: Smart PDF & Image Compression Web Tool
+1. Project Overview
+A web-based tool allowing users to upload PDFs or images, rasterize them into screenshots, and merge them into a single, compressed PDF. Key Constraints:
+
+Total page limits: 15/32/64/80 pages corresponding to output sizes 1MB/2MB/4MB/5MB.
+
+Platform: PC Browsers only (Block mobile access).
+
+Business Model: Freemium (3 free trials without login, then Pay-per-download via Paddle).
+
+2. Tech Stack Requirements
+Frontend: React (or Vue 3) + TailwindCSS.
+
+Backend: Python (FastAPI).
+
+Payment Gateway: Paddle (Strict requirement).
+
+Database: SQLite (MVP). Required to track temporary file IDs and payment status.
+
+3. Functional Specifications
+3.1. User Logic & Limitations (No Login System)
+Tracking: Use LocalStorage to track usage count.
+
+Free Quota: Max 3 successful downloads.
+
+Logic:
+
+Count < 3: Download is direct.
+
+Count >= 3: Download button opens Paddle Checkout.
+
+3.2. File Processing (Core Engine)
+(Same as previous version - Rasterization, DPI check, WeChat-style Compression)
+
+Key Change: When the file is ready, the backend must generate a unique file_token (UUID). This token is used to verify payment later.
+
+3.3. Payment Integration (Paddle - Production Ready)
+Since there is no user login, we verify payments using the File/Session ID.
+
+Product Setup:
+
+Create a "One-time Compression" product in Paddle Dashboard.
+
+Frontend Flow:
+
+User clicks "Pay & Download".
+
+Frontend initializes Paddle.js Overlay.
+
+Critical: Pass the file_token in the Paddle custom_data (or passthrough) field.
+
+Backend Flow (Webhook):
+
+Expose an endpoint /api/webhook/paddle.
+
+Verify Paddle Signature (Security).
+
+Receive the payment_succeeded event.
+
+Extract file_token from the passthrough data.
+
+Update the database: Mark this file_token as PAID.
+
+Download Flow:
+
+User requests download with file_token.
+
+Backend checks: Is this token in the "PAID" list (or is it a free trial)?
+
+If yes -> Serve file.
+
+If no -> Return 403 Forbidden.
+
+3.4. Localization (i18n) & Currency
+UI Text: Toggle between English/Simplified Chinese based on IP/Browser.
+
+Pricing & Currency:
+
+Do not implement custom currency logic.
+
+Rely on Paddle's Global Pricing. Paddle automatically detects the user's location and displays the correct currency (CNY for China, CAD for Canada, USD for US) in the checkout modal.
+
+4. Specific Instructions for AI Developer
+Paddle Sandbox: Start development using the Paddle Sandbox (Test Environment).
+
+Security: Even in MVP, do not trust the frontend to say "Payment Successful". You must implement the Backend Webhook to verify the transaction status before allowing the download of the 4th+ file.
+
+Clean Up: Since files are temporary, ensure the "Paid Status" and the physical files are deleted after a set time (e.g., 24 hours) via a Cron job.

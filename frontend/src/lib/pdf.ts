@@ -1,11 +1,9 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
-// 在部分生产环境中，直接使用 ?url 的 workerSrc 可能因路径或 MIME 导致加载失败。
-// 采用 Vite 的 ?worker 方式创建专用 Worker，并通过 workerPort 传给 pdf.js，避免静态路径问题。
+// 使用 .js + ?url，避免服务端对 .mjs 的错误 MIME 映射导致加载失败
 // @ts-ignore
-import PdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?worker";
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
 
-const workerInstance: Worker = new PdfWorker();
-GlobalWorkerOptions.workerPort = workerInstance;
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export async function getPdfPageCount(file: File): Promise<number> {
   const buffer = await file.arrayBuffer();

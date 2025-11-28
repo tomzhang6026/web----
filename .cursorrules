@@ -1,0 +1,41 @@
+# Project Rules & Architecture Guidelines
+
+## 1. Project Context
+* **Goal:** Build a Web Tool for PDF/Image Compression.
+* **Key Features:** Smart "WeChat-style" compression, Freemium (3 free trials), Paddle Payment (No-login), PC-only access.
+* **Tech Stack:** * Backend: Python (FastAPI), PyMuPDF, Pillow, SQLite.
+    * Frontend: React, TailwindCSS.
+
+## 2. Architectural Principles (Strict Adherence)
+To ensure modularity and prevent regression bugs, follow these architectural patterns:
+
+### A. Backend (FastAPI)
+* **Service-Repository Pattern:** * **`routers/`**: Handle HTTP requests/responses only. NO business logic here.
+    * **`services/`**: Contains the core business logic (e.g., `CompressionService`, `PaymentService`).
+    * **`core/`**: Configs, constants, and utility functions (e.g., DPI calculator).
+* **Isolation:** When I ask for a change in "Compression Logic", ONLY modify files in `services/compression.py`. Do not touch the API routes unless the input/output schema changes.
+* **Type Hinting:** Strictly use Python Type Hints (`def func(a: int) -> str:`) and Pydantic models for data validation.
+
+### B. Frontend (React)
+* **Atomic Components:** * **`components/ui/`**: Dumb components (Buttons, Modals) with no business logic.
+    * **`components/features/`**: Feature-specific blocks (e.g., `UploadZone`, `PricingModal`).
+    * **`pages/`**: Orchestrates components and manages state/API calls.
+* **CSS:** Use TailwindCSS utility classes. Do not write custom CSS files unless absolutely necessary for complex animations.
+
+## 3. Workflow & Token Efficiency Rules
+* **Step-by-Step Implementation:** Before writing code, briefly explain the plan. Wait for my approval if the change involves core logic.
+* **Incremental Output:** * When modifying a large file, **DO NOT** output the entire file. 
+    * Output only the modified functions or classes with context markers (e.g., `# ... existing code ...`).
+    * *Exception:* If the file is small (<50 lines) or created new, output the full file.
+* **Preserve Context:** Do not remove comments or "To-Do" markers I have placed.
+* **Error Handling:** Always wrap external calls (Image processing, Paddle API) in `try-except` blocks and return clear error messages.
+
+## 4. Coding Standards (The "Don't Break Things" Rules)
+* **Hardcoding Forbidden:** Never hardcode prices, file limits, or API keys. Put them in `config.py` or `.env`.
+* **Interface-First:** When designing the Payment system, define an `IPaymentProvider` interface first. This allows switching from Paddle to Stripe later without rewriting the whole app.
+* **Statelessness:** The backend must remain stateless. Use the SQLite database or Redis (future) to store state (like "has this file been paid for?"), never global variables.
+
+## 5. Specific Feature Guidelines
+* **Compression:** Always preserve the original file sequence.
+* **Paddle Integration:** Always verify the Webhook signature. Never trust the frontend.
+* **Mobile Block:** Maintain the User-Agent check at the root level (`App.js` or middleware).
