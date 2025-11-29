@@ -39,3 +39,9 @@ To ensure modularity and prevent regression bugs, follow these architectural pat
 * **Compression:** Always preserve the original file sequence.
 * **Paddle Integration:** Always verify the Webhook signature. Never trust the frontend.
 * **Mobile Block:** Maintain the User-Agent check at the root level (`App.js` or middleware).
+
+## 6. Deployment & Ops (Critical)
+* **PDF.js Worker:** Frontend build script (`package.json`) contains a `sed` replacement to fix `.mjs` MIME type issues on strict servers. **Do not remove this step.**
+* **Nginx Path:** Ensure Nginx `root` points to `frontend/dist` (not `frontend` or older paths). Soft-linking is recommended.
+* **Permissions:** Backend systemd service needs write access to `app.db` and `storage/` directory. If `readonly database` error occurs, check file permissions (`chmod`) and systemd `ReadWritePaths`.
+* **Cache:** When updating frontend, always clear server-side cache (Nginx/Cloudflare) and client-side cache, as `index.html` is often cached aggressively.
