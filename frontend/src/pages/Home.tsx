@@ -242,8 +242,11 @@ export default function Home() {
       <footer className="mx-auto max-w-6xl px-6 py-10 text-sm text-gray-500">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 border-b border-gray-200 pb-4">
            <span className="font-semibold text-gray-700">Guides:</span>
-           <Link to="/blog/visa-file-compression-guide-cn" className="text-blue-600 hover:underline">签证/留学文件压缩攻略</Link>
-           <Link to="/blog/visa-file-compression-guide-en" className="text-blue-600 hover:underline">Visa PDF Compression Guide</Link>
+           <Link to="/blog/visa-file-compression-guide-cn" className="text-blue-600 hover:underline">签证文件压缩攻略</Link>
+           <Link to="/blog/visa-file-compression-guide-en" className="text-blue-600 hover:underline">Visa PDF Guide</Link>
+           <Link to="/blog/why-pdf-size-too-large-dpi-cn" className="text-blue-600 hover:underline">DPI 陷阱揭秘</Link>
+           <Link to="/blog/top-5-passport-photo-tools-en" className="text-blue-600 hover:underline">Passport Photo Tools</Link>
+           <Link to="/blog" className="text-gray-400 hover:text-gray-600 hover:underline ml-auto">View All →</Link>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Link to="/privacy" className="hover:underline" target="_blank" rel="noopener noreferrer">隐私政策 / Privacy</Link>
