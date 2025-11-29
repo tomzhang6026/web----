@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Union
 import uuid
+import hashlib
 
 from passlib.context import CryptContext
 import jwt  # pyjwt
@@ -10,12 +11,14 @@ from .config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # 同样，验证时也要截断，否则匹配不上
-    return pwd_context.verify(plain_password[:72], hashed_password)
+    # 使用 SHA256 预哈希，确保长度固定，避开 bcrypt 72字节限制
+    digest = hashlib.sha256(plain_password.encode('utf-8')).hexdigest()
+    return pwd_context.verify(digest, hashed_password)
 
 def get_password_hash(password: str) -> str:
-    # bcrypt has a 72 byte limit
-    return pwd_context.hash(password[:72])
+    # 使用 SHA256 预哈希
+    digest = hashlib.sha256(password.encode('utf-8')).hexdigest()
+    return pwd_context.hash(digest)
 
 def create_access_token(subject: Union[str, Any], device_id: str) -> tuple[str, str]:
     """
