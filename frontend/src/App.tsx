@@ -16,6 +16,11 @@ import GuideCN from "./pages/blog/GuideCN";
 import GuideEN from "./pages/blog/GuideEN";
 import DpiGuideCN from "./pages/blog/DpiGuideCN";
 import TopToolsEN from "./pages/blog/TopToolsEN";
+import GuideUK from "./pages/blog/GuideUK";
+import GuideAus from "./pages/blog/GuideAus";
+import GuideSchengen from "./pages/blog/GuideSchengen";
+import GuideUS from "./pages/blog/GuideUS";
+import GuideCanada from "./pages/blog/GuideCanada";
 
 function isMobileDevice(): boolean {
   const ua = navigator.userAgent || navigator.vendor;
@@ -57,6 +62,12 @@ export default function App() {
       <Route path="/blog/visa-file-compression-guide-en" element={<GuideEN />} />
       <Route path="/blog/why-pdf-size-too-large-dpi-cn" element={<DpiGuideCN />} />
       <Route path="/blog/top-5-passport-photo-tools-en" element={<TopToolsEN />} />
+      
+      <Route path="/blog/uk-visa-file-requirements-guide" element={<GuideUK />} />
+      <Route path="/blog/australia-visa-immiaccount-limit-guide" element={<GuideAus />} />
+      <Route path="/blog/schengen-visa-digital-document-guide" element={<GuideSchengen />} />
+      <Route path="/blog/us-visa-photo-requirements-ds160-guide" element={<GuideUS />} />
+      <Route path="/blog/canada-visa-ircc-file-limit-guide" element={<GuideCanada />} />
 
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />

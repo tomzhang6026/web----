@@ -240,13 +240,25 @@ export default function Home() {
         </div>
       </main>
       <footer className="mx-auto max-w-6xl px-6 py-10 text-sm text-gray-500">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 border-b border-gray-200 pb-4">
-           <span className="font-semibold text-gray-700">Guides:</span>
-           <Link to="/blog/visa-file-compression-guide-cn" className="text-blue-600 hover:underline">签证文件压缩攻略</Link>
-           <Link to="/blog/visa-file-compression-guide-en" className="text-blue-600 hover:underline">Visa PDF Guide</Link>
-           <Link to="/blog/why-pdf-size-too-large-dpi-cn" className="text-blue-600 hover:underline">DPI 陷阱揭秘</Link>
-           <Link to="/blog/top-5-passport-photo-tools-en" className="text-blue-600 hover:underline">Passport Photo Tools</Link>
-           <Link to="/blog" className="text-gray-400 hover:text-gray-600 hover:underline ml-auto">View All →</Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b border-gray-200 pb-8">
+           <div>
+              <h4 className="font-semibold text-gray-700 mb-3">Country Guides</h4>
+              <div className="flex flex-col gap-2">
+                 <Link to="/blog/canada-visa-ircc-file-limit-guide" className="text-blue-600 hover:underline">Canada (IRCC) 4MB Limit Guide</Link>
+                 <Link to="/blog/us-visa-photo-requirements-ds160-guide" className="text-blue-600 hover:underline">US Visa (DS-160) Photo & File Rules</Link>
+                 <Link to="/blog/uk-visa-file-requirements-guide" className="text-blue-600 hover:underline">UK Student/Visitor Visa Requirements</Link>
+                 <Link to="/blog/australia-visa-immiaccount-limit-guide" className="text-blue-600 hover:underline">Australia ImmiAccount 5MB Limit</Link>
+                 <Link to="/blog/schengen-visa-digital-document-guide" className="text-blue-600 hover:underline">Schengen (France/Germany) Visa Docs</Link>
+              </div>
+           </div>
+           <div>
+              <h4 className="font-semibold text-gray-700 mb-3">General Tips</h4>
+              <div className="flex flex-col gap-2">
+                 <Link to="/blog/visa-file-compression-guide-cn" className="text-blue-600 hover:underline">签证/留学文件压缩攻略 (CN)</Link>
+                 <Link to="/blog/why-pdf-size-too-large-dpi-cn" className="text-blue-600 hover:underline">PDF/DPI 扫描仪设置揭秘</Link>
+                 <Link to="/blog" className="text-gray-400 hover:text-gray-600 hover:underline mt-2">View All Articles →</Link>
+              </div>
+           </div>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Link to="/privacy" className="hover:underline" target="_blank" rel="noopener noreferrer">隐私政策 / Privacy</Link>
