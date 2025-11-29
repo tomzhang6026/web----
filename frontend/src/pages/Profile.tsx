@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { getInitialLocale, Locale } from "../lib/i18n";
 import { getRegion } from "../lib/region";
+import { detectCountry, getPricingTier, PricingTier } from "../lib/geo";
 
 export default function Profile() {
   const [info, setInfo] = useState<PlanInfo | null>(null);
@@ -14,9 +15,15 @@ export default function Profile() {
   const { logoutCtx } = useAuth();
   const navigate = useNavigate();
   const [locale] = useState<Locale>(() => getInitialLocale(getRegion));
+  const [country, setCountry] = useState<string | null>(null);
+  const [tier, setTier] = useState<PricingTier | null>(null);
 
   useEffect(() => {
     loadInfo();
+    detectCountry().then(c => {
+        setCountry(c);
+        setTier(getPricingTier(c));
+    });
   }, []);
 
   const loadInfo = async () => {
@@ -51,8 +58,95 @@ export default function Profile() {
       }
   };
 
+  const handlePaddlePay = (plan: string) => {
+      alert(`Paddle payment for ${plan} is coming soon!`);
+  };
+
   if (loading) return <div className="p-10 text-center">{locale === 'zh-CN' ? "加载中..." : "Loading..."}</div>;
   if (!info) return null;
+
+  // Pricing Cards Components
+  const PricingCN = () => (
+    <>
+        <h3 className="text-lg font-bold text-gray-900 mb-6">
+            {locale === 'zh-CN' ? '购买订阅 (中国大陆推荐)' : 'Purchase Subscription (CN)'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* CN Cards */}
+            <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all text-center">
+                <div className="text-sm font-medium text-gray-500">{locale === 'zh-CN' ? '10次下载卡' : '10-Download Pass'}</div>
+                <div className="text-2xl font-bold text-gray-900 my-2">¥ 4.9</div>
+                <p className="text-xs text-gray-500 mb-4">{locale === 'zh-CN' ? '适合短期处理少量签证文件' : 'Good for short term usage'}</p>
+                <a href="https://mbd.pub/o/bread/mbd-weekly" target="_blank" rel="noopener noreferrer" className="block w-full bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700">
+                    {locale === 'zh-CN' ? '购买激活码' : 'Buy Code'}
+                </a>
+            </div>
+            <div className="border-2 border-blue-500 relative rounded-lg p-4 shadow-md text-center transform scale-105 bg-white">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full">
+                    {locale === 'zh-CN' ? '最热门' : 'Popular'}
+                </div>
+                <div className="text-sm font-medium text-gray-500 mt-2">{locale === 'zh-CN' ? '30天月卡' : '30-Day Pass'}</div>
+                <div className="text-2xl font-bold text-gray-900 my-2">¥ 8.9</div>
+                <p className="text-xs text-gray-500 mb-4">{locale === 'zh-CN' ? '适合整个申请季，不限次数' : 'Unlimited access for a month'}</p>
+                <a href="https://mbd.pub/o/bread/mbd-monthly" target="_blank" rel="noopener noreferrer" className="block w-full bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700">
+                    {locale === 'zh-CN' ? '购买激活码' : 'Buy Code'}
+                </a>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all text-center">
+                <div className="text-sm font-medium text-gray-500">{locale === 'zh-CN' ? '年度会员' : 'Yearly Pass'}</div>
+                <div className="text-2xl font-bold text-gray-900 my-2">¥ 44.9</div>
+                <p className="text-xs text-gray-500 mb-4">{locale === 'zh-CN' ? '家庭共享，长期备用' : 'Best value for long term'}</p>
+                <a href="https://mbd.pub/o/bread/mbd-yearly" target="_blank" rel="noopener noreferrer" className="block w-full bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700">
+                    {locale === 'zh-CN' ? '购买激活码' : 'Buy Code'}
+                </a>
+            </div>
+        </div>
+    </>
+  );
+
+  const PricingGlobal = ({ tier }: { tier: "Tier1" | "Tier2" }) => {
+    const p = tier === "Tier1" 
+        ? { w: "2.99", m: "5.99", y: "29.99" }
+        : { w: "1.49", m: "2.99", y: "14.99" };
+
+    return (
+        <>
+            <h3 className="text-lg font-bold text-gray-900 mb-6">
+                Select Your Plan (USD)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Global Cards */}
+                <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all text-center">
+                    <div className="text-sm font-medium text-gray-500">10-File Pass</div>
+                    <div className="text-2xl font-bold text-gray-900 my-2">$ {p.w}</div>
+                    <p className="text-xs text-gray-500 mb-4">Perfect for a single application.</p>
+                    <button onClick={() => handlePaddlePay("weekly")} className="block w-full bg-gray-800 text-white text-sm font-medium py-2 rounded hover:bg-gray-900">
+                        Subscribe
+                    </button>
+                </div>
+                <div className="border-2 border-blue-500 relative rounded-lg p-4 shadow-md text-center transform scale-105 bg-white">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full">
+                        Popular
+                    </div>
+                    <div className="text-sm font-medium text-gray-500 mt-2">Monthly Pass</div>
+                    <div className="text-2xl font-bold text-gray-900 my-2">$ {p.m}</div>
+                    <p className="text-xs text-gray-500 mb-4">Unlimited access for 30 days.</p>
+                    <button onClick={() => handlePaddlePay("monthly")} className="block w-full bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700">
+                        Subscribe
+                    </button>
+                </div>
+                <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all text-center">
+                    <div className="text-sm font-medium text-gray-500">Yearly Pass</div>
+                    <div className="text-2xl font-bold text-gray-900 my-2">$ {p.y}</div>
+                    <p className="text-xs text-gray-500 mb-4">Best value for families.</p>
+                    <button onClick={() => handlePaddlePay("yearly")} className="block w-full bg-gray-800 text-white text-sm font-medium py-2 rounded hover:bg-gray-900">
+                        Subscribe
+                    </button>
+                </div>
+            </div>
+        </>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -102,7 +196,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* 激活码兑换 */}
+        {/* 激活码兑换 (Always visible) */}
         <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">
                 {locale === 'zh-CN' ? '使用激活码' : 'Redeem Code'}
@@ -128,60 +222,19 @@ export default function Profile() {
             </p>
         </div>
 
-        {/* 购买套餐 */}
+        {/* Dynamic Pricing */}
         <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-6">
-                {locale === 'zh-CN' ? '购买订阅 (中国大陆推荐)' : 'Purchase Subscription (CN)'}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* 周卡 */}
-                <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all text-center">
-                    <div className="text-sm font-medium text-gray-500">{locale === 'zh-CN' ? '7天体验卡' : '7-Day Pass'}</div>
-                    <div className="text-2xl font-bold text-gray-900 my-2">¥ 9.9</div>
-                    <p className="text-xs text-gray-500 mb-4">{locale === 'zh-CN' ? '适合短期处理少量签证文件' : 'Good for short term usage'}</p>
-                    <a 
-                        href="https://mbd.pub/o/bread/mbd-weekly" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="block w-full bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700"
-                    >
-                        {locale === 'zh-CN' ? '购买激活码' : 'Buy Code'}
-                    </a>
-                </div>
-
-                {/* 月卡 */}
-                <div className="border-2 border-blue-500 relative rounded-lg p-4 shadow-md text-center transform scale-105">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full">
-                        {locale === 'zh-CN' ? '最热门' : 'Popular'}
-                    </div>
-                    <div className="text-sm font-medium text-gray-500 mt-2">{locale === 'zh-CN' ? '30天月卡' : '30-Day Pass'}</div>
-                    <div className="text-2xl font-bold text-gray-900 my-2">¥ 19.9</div>
-                    <p className="text-xs text-gray-500 mb-4">{locale === 'zh-CN' ? '适合整个申请季，不限次数' : 'Unlimited access for a month'}</p>
-                    <a 
-                        href="https://mbd.pub/o/bread/mbd-monthly" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="block w-full bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700"
-                    >
-                        {locale === 'zh-CN' ? '购买激活码' : 'Buy Code'}
-                    </a>
-                </div>
-
-                {/* 年卡 */}
-                <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all text-center">
-                    <div className="text-sm font-medium text-gray-500">{locale === 'zh-CN' ? '年度会员' : 'Yearly Pass'}</div>
-                    <div className="text-2xl font-bold text-gray-900 my-2">¥ 99.0</div>
-                    <p className="text-xs text-gray-500 mb-4">{locale === 'zh-CN' ? '家庭共享，长期备用' : 'Best value for long term'}</p>
-                    <a 
-                        href="https://mbd.pub/o/bread/mbd-yearly" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="block w-full bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700"
-                    >
-                        {locale === 'zh-CN' ? '购买激活码' : 'Buy Code'}
-                    </a>
-                </div>
-            </div>
+            {tier === null ? (
+                <div className="text-center py-4 text-gray-500">Loading pricing info...</div>
+            ) : tier === "CN" ? (
+                <PricingCN />
+            ) : (
+                <PricingGlobal tier={tier} />
+            )}
+        </div>
+        
+        <div className="text-center text-xs text-gray-400 mt-4">
+            Detected Region: {country} ({tier})
         </div>
       </div>
     </div>
