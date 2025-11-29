@@ -210,21 +210,21 @@ export default function UploadZone({
           >
             {/* Toolbar (Draggable Handle) */}
             <div 
-              className="flex items-center justify-between px-2 py-1 bg-gray-50 border-b text-xs cursor-move select-none active:bg-gray-200"
+              className="flex items-center justify-between px-2 py-1 bg-gray-200 border-b text-xs cursor-move select-none active:bg-gray-300 transition-colors"
               draggable="true"
               onDragStart={(e) => handleDragStart(e, idx)}
               onDragEnd={() => setDraggedIdx(null)}
               title="Drag to reorder"
             >
-              <div className="flex items-center gap-2">
-                 <span className="text-gray-400">⠿</span>
-                 <span className="text-gray-500 font-mono">#{idx + 1}</span>
+              <div className="flex items-center gap-2 font-medium text-gray-600">
+                 <span className="text-gray-500">⠿</span>
+                 <span>#{idx + 1}</span>
               </div>
               
               <div className="flex items-center gap-1" onMouseDown={(e) => e.stopPropagation()} /* 防止点击按钮触发拖拽 */>
                 <button
                   type="button"
-                  className="p-1 hover:bg-gray-200 rounded disabled:opacity-30"
+                  className="p-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30"
                   onClick={() => move(idx, -1)}
                   disabled={idx === 0}
                   title={t("moveUp", locale as Locale)}
@@ -233,7 +233,7 @@ export default function UploadZone({
                 </button>
                 <button
                   type="button"
-                  className="p-1 hover:bg-gray-200 rounded disabled:opacity-30"
+                  className="p-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30"
                   onClick={() => move(idx, 1)}
                   disabled={idx === slots.length - 1}
                   title={t("moveDown", locale as Locale)}
@@ -243,7 +243,7 @@ export default function UploadZone({
                 {slot.file && (
                   <button
                     type="button"
-                    className="p-1 text-red-500 hover:bg-red-50 rounded"
+                    className="p-1 ml-1 bg-white border border-red-200 text-red-500 hover:bg-red-50 rounded"
                     onClick={() => setFileFor(idx, undefined)}
                     title={t("clear", locale as Locale)}
                   >
