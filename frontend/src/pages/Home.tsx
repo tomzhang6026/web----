@@ -11,9 +11,43 @@ import DownloadOrPayButton from "../components/features/DownloadOrPayButton";
 import { api } from "../lib/api";
 import { saveBlob } from "../lib/download";
 import { Link } from "react-router-dom";
-import { getTrialCount, incrementTrialCount } from "../lib/storage";
+import { getTrialCount, incrementTrialCount, MAX_DAILY_FREE } from "../lib/storage";
 import BrowserSupport from "../components/features/BrowserSupport";
 import ProgressBar from "../components/ui/ProgressBar";
+import { trackEvent, GA_EVENTS } from "../lib/analytics";
+import { useAuth } from "../contexts/AuthContext";
+
+function HeroGuide({ locale }: { locale: Locale }) {
+  const steps = [
+    {
+      icon: "🎯",
+      title: locale === "zh-CN" ? "1. 设定目标大小" : "1. Set Target Size",
+      desc: locale === "zh-CN" ? "选择期望的文件大小 (1MB ~ 5MB)" : "Choose your desired file size limit",
+    },
+    {
+      icon: "📂",
+      title: locale === "zh-CN" ? "2. 批量上传 & 排序" : "2. Upload & Sort",
+      desc: locale === "zh-CN" ? "拖入多个图片/PDF，按需调整顺序" : "Drag & drop multiple files, reorder them",
+    },
+    {
+      icon: "⬇️",
+      title: locale === "zh-CN" ? "3. 智能压缩 & 下载" : "3. Compress & Download",
+      desc: locale === "zh-CN" ? "自动排版为A4竖向，试用免费下载" : "Auto-layout to A4 portrait, free trial",
+    },
+  ];
+
+  return (
+    <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+      {steps.map((s, i) => (
+        <div key={i} className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+          <div className="text-4xl mb-3">{s.icon}</div>
+          <h3 className="font-bold text-gray-800 mb-1">{s.title}</h3>
+          <p className="text-sm text-gray-500">{s.desc}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Home() {
   const [targetSizeMb, setTargetSizeMb] = useState<number>(SIZE_OPTIONS[0].value);
@@ -26,6 +60,7 @@ export default function Home() {
   const [fileToken, setFileToken] = useState<string | null>(null);
   const [resultSizeBytes, setResultSizeBytes] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { isLoggedIn } = useAuth();
   const maxPages = useMemo(
     () => SIZE_OPTIONS.find((o) => o.value === targetSizeMb)?.maxPages ?? 0,
     [targetSizeMb]
@@ -38,6 +73,9 @@ export default function Home() {
     if (totalPages > maxPages) return;
     setErrorMsg(null);
     setProcessing(true);
+    
+    trackEvent(GA_EVENTS.PROCESS_START, { target_size_mb: targetSizeMb, file_count: files.length });
+
     try {
       const form = new FormData();
       form.append("target_size_mb", String(targetSizeMb));
@@ -63,7 +101,18 @@ export default function Home() {
       <header className="mx-auto max-w-6xl px-6 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">{t("appTitle", locale)}</h1>
-          <LanguageToggle onChange={setLocale} />
+          <div className="flex items-center gap-4">
+             {isLoggedIn ? (
+                 <Link to="/profile" className="text-sm font-medium text-gray-700 hover:text-blue-600">
+                     {locale === "zh-CN" ? "我的账户" : "My Account"}
+                 </Link>
+             ) : (
+                 <Link to="/login" className="text-sm font-medium text-gray-700 hover:text-blue-600">
+                     {locale === "zh-CN" ? "登录 / 注册" : "Login / Sign up"}
+                 </Link>
+             )}
+             <LanguageToggle onChange={setLocale} />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start">
@@ -71,6 +120,9 @@ export default function Home() {
           <BrowserSupport />
         </div>
         <div className="order-1 md:order-2">
+          
+          <HeroGuide locale={locale} />
+
           <section className="mb-6">
             <div className="flex items-center gap-4 flex-wrap">
               <div className="w-64">
@@ -95,6 +147,7 @@ export default function Home() {
             initialSlots={5}
             onTotalPagesChange={setTotalPages}
             onSlotsChange={setSlotItems}
+            locale={locale}
           />
 
           <div className="mt-4">
@@ -140,10 +193,14 @@ export default function Home() {
               onDownload={async () => {
                 if (!fileToken) return;
                 const forceFree = (import.meta.env.VITE_FREE_MODE as string | undefined)?.toLowerCase() === "true";
-                const canUseTrial = forceFree || getTrialCount() < 3;
+                // 检查免费次数 (这里用 storage.ts 里的逻辑，稍后会修改为每日重置)
+                const canUseTrial = forceFree || getTrialCount() < MAX_DAILY_FREE; // 这里其实是硬编码判断，storage.ts 里还要改
+                
                 try {
                   const { blob, filename } = await api.fetchDownloadBlob(fileToken, canUseTrial);
                   saveBlob(blob, filename);
+                  trackEvent(GA_EVENTS.FILE_DOWNLOAD, { file_token: fileToken, is_paid: !canUseTrial });
+                  
                   if (canUseTrial && !forceFree) {
                     incrementTrialCount();
                   }
@@ -153,6 +210,7 @@ export default function Home() {
                 }
               }}
               onPay={() => {
+                trackEvent(GA_EVENTS.PAYMENT_INITIATE, { file_token: fileToken });
                 alert("支付流程将接入 Paddle，当前为占位。");
               }}
             />
@@ -167,6 +225,11 @@ export default function Home() {
         </div>
       </main>
       <footer className="mx-auto max-w-6xl px-6 py-10 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 border-b border-gray-200 pb-4">
+           <span className="font-semibold text-gray-700">Guides:</span>
+           <Link to="/blog/visa-file-compression-guide-cn" className="text-blue-600 hover:underline">签证/留学文件压缩攻略</Link>
+           <Link to="/blog/visa-file-compression-guide-en" className="text-blue-600 hover:underline">Visa PDF Compression Guide</Link>
+        </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Link to="/privacy" className="hover:underline" target="_blank" rel="noopener noreferrer">隐私政策 / Privacy</Link>
           <Link to="/terms" className="hover:underline" target="_blank" rel="noopener noreferrer">用户协议 / Terms</Link>
@@ -176,5 +239,3 @@ export default function Home() {
     </div>
   );
 }
-
-

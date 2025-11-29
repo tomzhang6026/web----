@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     app_name: str = "Compression Tool API"
     environment: str = Field(default="development")
     database_url: str = Field(default="sqlite:///./app.db")
+    
+    # Auth
+    jwt_secret_key: str = Field(default="changethis_secret_key_for_production_please_at_least_32_chars", min_length=32)
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 12  # 12 hours
+    
     paddle_public_key: str | None = None
     paddle_env: str = Field(default="sandbox")
     file_ttl_hours: int = Field(default=6)
@@ -30,5 +36,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-

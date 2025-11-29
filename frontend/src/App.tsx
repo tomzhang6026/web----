@@ -1,10 +1,21 @@
 import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import DeviceManagement from "./pages/DeviceManagement";
+import Profile from "./pages/Profile";
 import { getInitialLocale, t } from "./lib/i18n";
 import { getRegion } from "./lib/region";
 import { Routes, Route, Link } from "react-router-dom";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
 import AUP from "./pages/legal/AUP";
+
+// Blog Pages
+import BlogIndex from "./pages/blog/BlogIndex";
+import GuideCN from "./pages/blog/GuideCN";
+import GuideEN from "./pages/blog/GuideEN";
+import DpiGuideCN from "./pages/blog/DpiGuideCN";
+import TopToolsEN from "./pages/blog/TopToolsEN";
 
 function isMobileDevice(): boolean {
   const ua = navigator.userAgent || navigator.vendor;
@@ -35,11 +46,21 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<PCGate><Home /></PCGate>} />
+      <Route path="/login" element={<PCGate><Login /></PCGate>} />
+      <Route path="/register" element={<PCGate><Register /></PCGate>} />
+      <Route path="/device-management" element={<PCGate><DeviceManagement /></PCGate>} />
+      <Route path="/profile" element={<PCGate><Profile /></PCGate>} />
+      
+      {/* Blog Routes */}
+      <Route path="/blog" element={<BlogIndex />} />
+      <Route path="/blog/visa-file-compression-guide-cn" element={<GuideCN />} />
+      <Route path="/blog/visa-file-compression-guide-en" element={<GuideEN />} />
+      <Route path="/blog/why-pdf-size-too-large-dpi-cn" element={<DpiGuideCN />} />
+      <Route path="/blog/top-5-passport-photo-tools-en" element={<TopToolsEN />} />
+
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/aup" element={<AUP />} />
     </Routes>
   );
 }
-
-
