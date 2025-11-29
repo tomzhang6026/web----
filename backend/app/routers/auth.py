@@ -11,6 +11,7 @@ import jwt
 
 from ..core.db import get_db
 from ..core.config import settings
+from ..core.limiter import limiter
 from ..services.auth import AuthService, DeviceLimitReached
 from ..models.tables import User, UserSession
 
@@ -61,9 +62,10 @@ async def get_current_user_token(
 
 # Routes
 @router.post("/auth/register", response_model=Token)
+@limiter.limit("3/minute")
 async def register(
-    user_in: UserCreate, 
     request: Request,
+    user_in: UserCreate, 
     x_device_id: str = Header(..., alias="X-Device-ID"),
     db: Session = Depends(get_db)
 ):
@@ -87,6 +89,7 @@ async def register(
         )
 
 @router.post("/auth/login", response_model=Token)
+@limiter.limit("5/minute")
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),

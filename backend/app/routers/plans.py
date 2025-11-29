@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Tuple, List, Optional
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status, Header, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Header, Body, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -10,6 +10,7 @@ import jwt
 
 from ..core.db import get_db
 from ..core.config import settings
+from ..core.limiter import limiter
 from ..models.tables import User, UserSession, Plan, RedeemCode
 
 router = APIRouter()
@@ -99,7 +100,9 @@ def generate_codes(
     return {"codes": codes}
 
 @router.post("/redeem")
+@limiter.limit("5/minute")
 def redeem_code(
+    request: Request,
     code: str = Body(..., embed=True), 
     current_user_data: Tuple[User, str, str] = Depends(get_current_active_user), 
     db: Session = Depends(get_db)
@@ -163,4 +166,3 @@ def get_my_plan(
         "expires_at": user.plan_expires_at,
         "device_limit": 2
     }
-
