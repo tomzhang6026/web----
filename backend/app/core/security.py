@@ -2,38 +2,52 @@ from datetime import datetime, timedelta
 from typing import Any, Union
 import uuid
 import hashlib
-
-from passlib.context import CryptContext
-import jwt  # pyjwt
+import base64
+import bcrypt  # pip install bcrypt
+import jwt
 
 from .config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # 使用 SHA256 预哈希，确保长度固定，避开 bcrypt 72字节限制
-    digest = hashlib.sha256(plain_password.encode('utf-8')).hexdigest()
-    return pwd_context.verify(digest, hashed_password)
+# 不再使用 passlib，太重且有坑
+# pwd_context = ... 删掉
 
 def get_password_hash(password: str) -> str:
-    # 使用 SHA256 预哈希
-    digest = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    return pwd_context.hash(digest)
+    """
+    Secure password hashing using SHA256 + Bcrypt.
+    1. SHA256 pre-hashing ensures fixed length (32 bytes), bypassing bcrypt's 72-byte limit.
+    2. Base64 encoding makes it safe for bcrypt consumption.
+    """
+    # 1. Pre-hash
+    digest = hashlib.sha256(password.encode('utf-8')).digest()
+    # 2. Encode to safe bytes
+    pwd_safe = base64.b64encode(digest)
+    # 3. Bcrypt hash
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(pwd_safe, salt)
+    return hashed.decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    # 1. Pre-hash
+    digest = hashlib.sha256(plain_password.encode('utf-8')).digest()
+    pwd_safe = base64.b64encode(digest)
+    
+    # 2. Bcrypt check
+    try:
+        return bcrypt.checkpw(pwd_safe, hashed_password.encode('utf-8'))
+    except ValueError:
+        # 防止非法 hash 格式报错
+        return False
 
 def create_access_token(subject: Union[str, Any], device_id: str) -> tuple[str, str]:
-    """
-    生成 JWT Token 和 JTI。
-    返回: (encoded_jwt, jti)
-    """
     now = datetime.utcnow()
     expires_delta = timedelta(minutes=settings.access_token_expire_minutes)
     expire = now + expires_delta
     
-    jti = str(uuid.uuid4()) # 唯一ID
+    jti = str(uuid.uuid4())
     
     to_encode = {
-        "sub": str(subject), # user_id
-        "dev": device_id,    # device_id
+        "sub": str(subject),
+        "dev": device_id,
         "exp": expire,
         "iat": now,
         "jti": jti
@@ -43,8 +57,4 @@ def create_access_token(subject: Union[str, Any], device_id: str) -> tuple[str, 
     return encoded_jwt, jti
 
 def verify_paddle_signature(public_key_pem: str, body: bytes, signature: str) -> bool:
-    """
-    验证 Paddle Webhook 签名（占位实现，后续里程碑完善）
-    """
-    # TODO: Implement with Paddle public key and signature scheme
     return False
