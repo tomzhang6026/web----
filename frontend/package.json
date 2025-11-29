@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && sed -i 's|/assets/pdf.worker.min-[a-zA-Z0-9]*\\.mjs|/pdf.worker.min.js|g' dist/assets/*.js",
     "preview": "vite preview",
     "postinstall": "mkdir -p public && cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.js"
   },
