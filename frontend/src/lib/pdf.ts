@@ -1,7 +1,7 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 
-// 指向 public 目录下的 worker 文件（手动复制并重命名为 .js）
-// 这样可以规避服务器对 .mjs 文件的 MIME 类型检查问题
+// 彻底移除 import 导入，直接硬编码路径
+// 这样 Vite 就不会去打包 pdf.worker.mjs，也不会生成那个带有 hash 的文件引用
 GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export async function getPdfPageCount(file: File): Promise<number> {
