@@ -16,6 +16,7 @@ import BrowserSupport from "../components/features/BrowserSupport";
 import ProgressBar from "../components/ui/ProgressBar";
 import { trackEvent, GA_EVENTS } from "../lib/analytics";
 import { useAuth } from "../contexts/AuthContext";
+import SEOFAQ from "../components/features/SEOFAQ";
 
 function HeroGuide({ locale }: { locale: Locale }) {
   const steps = [
@@ -239,6 +240,9 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      <SEOFAQ locale={locale} />
+
       <footer className="mx-auto max-w-6xl px-6 py-10 text-sm text-gray-500">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b border-gray-200 pb-8">
            <div>
