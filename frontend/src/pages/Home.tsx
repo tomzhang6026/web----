@@ -129,7 +129,22 @@ export default function Home() {
                 <Select
                   label={t("targetSize", locale)}
                   value={String(targetSizeMb)}
-                  onChange={(v) => setTargetSizeMb(Number(v))}
+                  onChange={(v) => {
+                      setTargetSizeMb(Number(v));
+                      // Implicit Data Collection
+                      const label = SIZE_OPTIONS.find(o => o.value === Number(v))?.label || "";
+                      let dest = "unknown";
+                      if (label.includes("Canada")) dest = "Canada";
+                      if (label.includes("Australia")) dest = "Australia";
+                      if (label.includes("US")) dest = "USA";
+                      if (label.includes("UK")) dest = "UK";
+                      if (label.includes("Schengen")) dest = "Schengen";
+                      if (label.includes("China") || label.includes("学信网")) dest = "China";
+                      
+                      if (dest !== "unknown") {
+                          trackEvent("select_destination", { destination: dest });
+                      }
+                  }}
                   options={SIZE_OPTIONS.map((o) => ({
                     label: o.label,
                     value: String(o.value),
@@ -193,8 +208,8 @@ export default function Home() {
               onDownload={async () => {
                 if (!fileToken) return;
                 const forceFree = (import.meta.env.VITE_FREE_MODE as string | undefined)?.toLowerCase() === "true";
-                // 检查免费次数 (这里用 storage.ts 里的逻辑，稍后会修改为每日重置)
-                const canUseTrial = forceFree || getTrialCount() < MAX_DAILY_FREE; // 这里其实是硬编码判断，storage.ts 里还要改
+                // 检查免费次数
+                const canUseTrial = forceFree || getTrialCount() < MAX_DAILY_FREE; 
                 
                 try {
                   const { blob, filename } = await api.fetchDownloadBlob(fileToken, canUseTrial);
